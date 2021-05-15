@@ -3,7 +3,7 @@ package core;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-public class Sha1 {
+public class SHA1 {
 
     public static String hash(String cleartext) {
 
@@ -14,9 +14,8 @@ public class Sha1 {
 
             return bytesToHex(sha1);
         } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
+            return "";
         }
-        return "";
     }
 
     private static String bytesToHex(byte[] data) {
