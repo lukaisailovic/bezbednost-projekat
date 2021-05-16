@@ -6,10 +6,7 @@ import app.shared.response.Response;
 import app.shared.response.ResponseType;
 
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -34,12 +31,21 @@ public class ServerThread implements Runnable {
 
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             PrintWriter out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true);
-
+            String cleartext = "";
+            boolean solved = false;
 
             while (true) {
                 boolean shouldBreak = false;
                 Request request = Request.receive(in);
                 Response response = new Response();
+
+                if (server.getSolved().get()){
+                    response.setResponseType(ResponseType.STOP);
+                    response.setData("hash found, value="+cleartext);
+                    response.send(out);
+                    break;
+                }
+
                 if (request.getRequestType().equals(RequestType.REQUEST_JOB)){
                     response.setResponseType(ResponseType.SEND_JOB);
                     response.setData(server.getJobsQueue().take().serialize());
@@ -51,21 +57,27 @@ public class ServerThread implements Runnable {
                         response.setResponseType(ResponseType.STOP);
                         shouldBreak = true;
                         this.server.getSolved().set(true);
-                        this.server.solveHash(parts[1]);
+                        solved = true;
+                        cleartext = parts[1];
                     }
                 }
-                if (request.getRequestType().equals(RequestType.STOP)){
-                    System.out.println(request);
+                if (solved){
+                    response.setResponseType(ResponseType.STOP);
+                    response.setData("hash found, value="+cleartext);
                     shouldBreak = true;
+                }
+                response.send(out);
+                if (solved){
+                    this.server.solveHash(cleartext);
                 }
                 if (shouldBreak){
                     break;
                 }
-
-                response.send(out);
             }
             System.out.println("Client: " + socket.getInetAddress().getHostAddress() + " disconnected");
             socket.close();
+            in.close();
+            out.close();
 
 
         } catch (Exception e) {

@@ -60,6 +60,8 @@ public class Client {
             }
             if (response.getResponseType().equals(ResponseType.STOP)){
                 shouldBreak = true;
+                System.out.println("Server sent STOP response.");
+                System.out.println("Message: " + response.getData());
             }
             if (shouldBreak){
                 break;
