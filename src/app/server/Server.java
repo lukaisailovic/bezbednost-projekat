@@ -7,14 +7,16 @@ import app.shared.Parameters;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Server {
 
     private static final int PORT = 2021;
     private final ServerSocket serverSocket;
     private final BlockingQueue<Job> jobsQueue = new LinkedBlockingQueue<>();
+    private final AtomicInteger checks = new AtomicInteger(0);
+    private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
 
     public Server() throws Exception {
         this.serverSocket = new ServerSocket(PORT);
@@ -31,9 +33,11 @@ public class Server {
     }
     public void start() throws IOException {
         System.out.println("Server waiting for connections on port "+PORT);
+        Benchmark benchmark = new Benchmark(checks);
+        executor.scheduleAtFixedRate(benchmark,0,1,TimeUnit.SECONDS);
         while (true) {
             Socket socket = serverSocket.accept();
-            ServerThread serverThread = new ServerThread(socket, this);
+            ServerThread serverThread = new ServerThread(socket, this,checks);
             Thread thread = new Thread(serverThread);
             thread.start();
         }

@@ -11,16 +11,18 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ServerThread implements Runnable {
 
     private final Socket socket;
     private final Server server;
+    private final AtomicInteger checks;
 
-    public ServerThread(Socket socket, Server server) {
-
+    public ServerThread(Socket socket, Server server, AtomicInteger checks) {
         this.socket = socket;
         this.server = server;
+        this.checks = checks;
     }
 
     @Override
@@ -36,13 +38,12 @@ public class ServerThread implements Runnable {
                 Request request = Request.receive(in);
                 Response response = new Response();
                 if (request.getRequestType().equals(RequestType.REQUEST_JOB)){
-                    System.out.println(request);
                     response.setResponseType(ResponseType.SEND_JOB);
                     response.setData(server.getJobsQueue().take().serialize());
-                    System.out.println("Job sent to client");
                 }
                 if (request.getRequestType().equals(RequestType.SEND_VALUE)){
-                    System.out.println("Client sent "+ request.getData());
+                    //System.out.println("Client sent "+ request.getData());
+                    this.checks.incrementAndGet();
                 }
                 if (request.getRequestType().equals(RequestType.STOP)){
                     System.out.println(request);
