@@ -43,7 +43,7 @@ public class Client {
                 }
                 String hash = SHA1.hash(generatedString);
                 System.out.println("ATTEMPT: "+hash);
-                request.setData(hash);
+                request.setData(hash+","+generatedString);
             } catch (Exception e) {
                 request.setRequestType(RequestType.REQUEST_JOB);
                 request.setData("req");

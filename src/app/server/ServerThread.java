@@ -18,11 +18,14 @@ public class ServerThread implements Runnable {
     private final Socket socket;
     private final Server server;
     private final AtomicLong checks;
+    private final String target;
+    private String solution = "";
 
     public ServerThread(Socket socket, Server server, AtomicLong checks) {
         this.socket = socket;
         this.server = server;
         this.checks = checks;
+        this.target = server.getTarget();
     }
 
     @Override
@@ -42,8 +45,14 @@ public class ServerThread implements Runnable {
                     response.setData(server.getJobsQueue().take().serialize());
                 }
                 if (request.getRequestType().equals(RequestType.SEND_VALUE)){
-                    //System.out.println("Client sent "+ request.getData());
                     this.checks.incrementAndGet();
+                    String[] parts = request.getData().split(",");
+                    if (target.equals(parts[0])){
+                        response.setResponseType(ResponseType.STOP);
+                        shouldBreak = true;
+                        this.server.getSolved().set(true);
+                        this.server.solveHash(parts[1]);
+                    }
                 }
                 if (request.getRequestType().equals(RequestType.STOP)){
                     System.out.println(request);
@@ -56,8 +65,8 @@ public class ServerThread implements Runnable {
                 response.send(out);
             }
             System.out.println("Client: " + socket.getInetAddress().getHostAddress() + " disconnected");
-
             socket.close();
+
 
         } catch (Exception e) {
             e.printStackTrace();
