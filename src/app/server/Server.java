@@ -9,13 +9,14 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class Server {
 
     private static final int PORT = 2021;
     private final ServerSocket serverSocket;
     private final BlockingQueue<Job> jobsQueue = new LinkedBlockingQueue<>();
-    private final AtomicInteger checks = new AtomicInteger(0);
+    private final AtomicLong checks = new AtomicLong(0);
     private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
 
     public Server() throws Exception {

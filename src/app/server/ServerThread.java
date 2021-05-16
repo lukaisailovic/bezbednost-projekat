@@ -12,14 +12,15 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class ServerThread implements Runnable {
 
     private final Socket socket;
     private final Server server;
-    private final AtomicInteger checks;
+    private final AtomicLong checks;
 
-    public ServerThread(Socket socket, Server server, AtomicInteger checks) {
+    public ServerThread(Socket socket, Server server, AtomicLong checks) {
         this.socket = socket;
         this.server = server;
         this.checks = checks;

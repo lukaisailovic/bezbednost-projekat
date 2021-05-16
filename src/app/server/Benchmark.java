@@ -1,12 +1,13 @@
 package app.server;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class Benchmark implements Runnable{
 
-    private final AtomicInteger checks;
+    private final AtomicLong checks;
 
-    public Benchmark(AtomicInteger checks) {
+    public Benchmark(AtomicLong checks) {
         this.checks = checks;
     }
 
