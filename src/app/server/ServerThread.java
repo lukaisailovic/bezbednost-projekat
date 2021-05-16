@@ -1,5 +1,9 @@
 package app.server;
 
+import app.shared.request.Request;
+import app.shared.request.RequestType;
+
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -24,15 +28,16 @@ public class ServerThread implements Runnable {
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             PrintWriter out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true);
 
-            // client connected, send job
-            out.println("POZZ");
-            while (true) {
 
-                String poruka = in.readLine();
-                if (poruka.equals("exit"))
+            while (true) {
+                Request request = Request.receive(in);
+                System.out.println(request);
+                if (request.getRequestType().equals(RequestType.STOP)){
                     break;
+                }
+
             }
-            System.out.println("Klijent sa adresom: " + socket.getInetAddress().getHostAddress() + " se diskonektovao.");
+            System.out.println("Client: " + socket.getInetAddress().getHostAddress() + " disconnected");
 
             socket.close();
 

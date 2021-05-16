@@ -1,5 +1,8 @@
 package app.client;
 
+import app.shared.request.Request;
+import app.shared.request.RequestType;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -21,20 +24,26 @@ public class Client {
 
         System.out.println("Connected to server on port "+SERVER_PORT);
 
-        String msg = in.readLine();
-        System.out.println(msg);
 
+        int i = 0;
         while (true) {
-            String tastatura = tin.readLine();
-            out.println(tastatura);
 
-            if (tastatura.equals("exit"))
+            if(i < 5){
+                Request request = new Request(RequestType.REQUEST_JOB);
+                request.setData("ATTEMPT "+(i+1));
+                request.send(out);
+            } else {
+                Request request = new Request(RequestType.STOP);
+                request.setData("ATTEMPT "+(i+1));
+                request.send(out);
                 break;
+            }
+            i++;
 
         }
 
         socket.close();
-        System.out.println("Socket je zatvoren");
+        System.out.println("Disconnecting");
 
     }
 
