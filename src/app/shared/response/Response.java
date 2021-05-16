@@ -15,7 +15,7 @@ public class Response {
     public Response() {
     }
 
-    public ResponseType getRequestType() {
+    public ResponseType getResponseType() {
         return responseType;
     }
 
@@ -32,6 +32,14 @@ public class Response {
     }
 
     public void send(PrintWriter out){
+        if (this.responseType == null){
+            this.responseType = ResponseType.ACK;
+        }
+        if(this.data == null || this.data.length() == 0){
+            setResponseType(ResponseType.ACK);
+            setData("ack");
+        }
+
         String stringBuilder = URLEncoder.encode(this.responseType.toString(), StandardCharsets.UTF_8) +
                 "." +
                 URLEncoder.encode(this.data, StandardCharsets.UTF_8);

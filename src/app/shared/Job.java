@@ -1,6 +1,9 @@
 package app.shared;
 
 public class Job {
+
+    private static final String DELIMITER = ",";
+
     private final int length;
     private final int startPos;
 
@@ -23,5 +26,13 @@ public class Job {
                 "length=" + length +
                 ", startPos=" + startPos +
                 '}';
+    }
+
+    public String serialize(){
+        return this.length+DELIMITER+this.startPos;
+    }
+    public static Job deserialize(String data){
+        String[] parts = data.split(DELIMITER);
+        return new Job(Integer.parseInt(parts[0]),Integer.parseInt(parts[1]));
     }
 }

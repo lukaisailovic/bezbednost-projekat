@@ -1,8 +1,10 @@
 package app.client;
 
+import app.shared.Job;
 import app.shared.request.Request;
 import app.shared.request.RequestType;
 import app.shared.response.Response;
+import app.shared.response.ResponseType;
 
 import java.io.*;
 import java.net.Socket;
@@ -27,7 +29,7 @@ public class Client {
         while (true) {
             boolean shouldBreak = false;
             Request request = new Request();
-            if(i < 5){
+            if(i < 100){
                 request.setRequestType(RequestType.REQUEST_JOB);
             } else {
                request.setRequestType(RequestType.STOP);
@@ -40,6 +42,10 @@ public class Client {
             }
             Response response = Response.receive(in);
             System.out.println(response);
+            if (response.getResponseType().equals(ResponseType.SEND_JOB)){
+                Job job = Job.deserialize(response.getData());
+                System.out.println(job);
+            }
             i++;
 
         }

@@ -21,6 +21,10 @@ public class Server {
         this.populateJobQueue();
     }
 
+    public BlockingQueue<Job> getJobsQueue() {
+        return jobsQueue;
+    }
+
     private void populateJobQueue(){
         JobScheduler jobScheduler = new JobScheduler(Parameters.MAX_PASSWORD_LENGTH);
         jobsQueue.addAll(jobScheduler.getJobs());

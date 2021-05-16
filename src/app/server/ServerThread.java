@@ -35,8 +35,12 @@ public class ServerThread implements Runnable {
                 boolean shouldBreak = false;
                 Request request = Request.receive(in);
                 System.out.println(request);
-                if (request.getRequestType().equals(RequestType.REQUEST_JOB)){
 
+                Response response = new Response();
+
+                if (request.getRequestType().equals(RequestType.REQUEST_JOB)){
+                    response.setResponseType(ResponseType.SEND_JOB);
+                    response.setData(server.getJobsQueue().take().serialize());
                 }
                 if (request.getRequestType().equals(RequestType.STOP)){
                     shouldBreak = true;
@@ -44,11 +48,8 @@ public class ServerThread implements Runnable {
                 if (shouldBreak){
                     break;
                 }
-                Response response = new Response();
-                response.setResponseType(ResponseType.ACK);
-                response.setData("ack");
-                response.send(out);
 
+                response.send(out);
             }
             System.out.println("Client: " + socket.getInetAddress().getHostAddress() + " disconnected");
 
