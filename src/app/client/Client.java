@@ -5,14 +5,19 @@ import app.shared.request.Request;
 import app.shared.request.RequestType;
 import app.shared.response.Response;
 import app.shared.response.ResponseType;
+import core.SHA1;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 public class Client {
     private static final int SERVER_PORT = 2021;
     private static final String SERVER_HOST = "localhost";
     private final Socket socket;
+    private final BlockingQueue<String> sendingQueue = new LinkedBlockingQueue<>();
 
     public Client() throws Exception {
         this.socket = new Socket(SERVER_HOST, SERVER_PORT);
@@ -29,22 +34,35 @@ public class Client {
         while (true) {
             boolean shouldBreak = false;
             Request request = new Request();
-            if(i < 100){
+
+            try {
+                String generatedString = sendingQueue.poll(50, TimeUnit.MILLISECONDS);
+                request.setRequestType(RequestType.SEND_VALUE);
+                if (generatedString == null){
+                    throw new Exception("Invalid string");
+                }
+                String hash = SHA1.hash(generatedString);
+                System.out.println("ATTEMPT: "+hash);
+                request.setData(hash);
+            } catch (Exception e) {
                 request.setRequestType(RequestType.REQUEST_JOB);
-            } else {
-               request.setRequestType(RequestType.STOP);
-               shouldBreak = true;
+                request.setData("req");
             }
-            request.setData("ATTEMPT "+(i+1));
             request.send(out);
-            if (shouldBreak){
-                break;
-            }
             Response response = Response.receive(in);
             System.out.println(response);
             if (response.getResponseType().equals(ResponseType.SEND_JOB)){
                 Job job = Job.deserialize(response.getData());
                 System.out.println(job);
+                JobConsumer jobConsumer = new JobConsumer(sendingQueue,job);
+                Thread thread = new Thread(jobConsumer);
+                thread.start();
+            }
+            if (response.getResponseType().equals(ResponseType.STOP)){
+                shouldBreak = true;
+            }
+            if (shouldBreak){
+                break;
             }
             i++;
 

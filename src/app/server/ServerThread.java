@@ -34,15 +34,18 @@ public class ServerThread implements Runnable {
             while (true) {
                 boolean shouldBreak = false;
                 Request request = Request.receive(in);
-                System.out.println(request);
-
                 Response response = new Response();
-
                 if (request.getRequestType().equals(RequestType.REQUEST_JOB)){
+                    System.out.println(request);
                     response.setResponseType(ResponseType.SEND_JOB);
                     response.setData(server.getJobsQueue().take().serialize());
+                    System.out.println("Job sent to client");
+                }
+                if (request.getRequestType().equals(RequestType.SEND_VALUE)){
+                    System.out.println("Client sent "+ request.getData());
                 }
                 if (request.getRequestType().equals(RequestType.STOP)){
+                    System.out.println(request);
                     shouldBreak = true;
                 }
                 if (shouldBreak){
