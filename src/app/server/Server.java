@@ -1,14 +1,11 @@
 package app.server;
 
-import app.client.Bruteforce;
 import app.shared.Job;
 import app.shared.Parameters;
-
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class Server {
