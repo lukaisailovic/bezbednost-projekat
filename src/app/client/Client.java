@@ -2,6 +2,7 @@ package app.client;
 
 import app.shared.request.Request;
 import app.shared.request.RequestType;
+import app.shared.response.Response;
 
 import java.io.*;
 import java.net.Socket;
@@ -24,17 +25,21 @@ public class Client {
 
         int i = 0;
         while (true) {
-
+            boolean shouldBreak = false;
+            Request request = new Request();
             if(i < 5){
-                Request request = new Request(RequestType.REQUEST_JOB);
-                request.setData("ATTEMPT "+(i+1));
-                request.send(out);
+                request.setRequestType(RequestType.REQUEST_JOB);
             } else {
-                Request request = new Request(RequestType.STOP);
-                request.setData("ATTEMPT "+(i+1));
-                request.send(out);
+               request.setRequestType(RequestType.STOP);
+               shouldBreak = true;
+            }
+            request.setData("ATTEMPT "+(i+1));
+            request.send(out);
+            if (shouldBreak){
                 break;
             }
+            Response response = Response.receive(in);
+            System.out.println(response);
             i++;
 
         }

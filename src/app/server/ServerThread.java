@@ -2,6 +2,8 @@ package app.server;
 
 import app.shared.request.Request;
 import app.shared.request.RequestType;
+import app.shared.response.Response;
+import app.shared.response.ResponseType;
 
 
 import java.io.BufferedReader;
@@ -30,11 +32,22 @@ public class ServerThread implements Runnable {
 
 
             while (true) {
+                boolean shouldBreak = false;
                 Request request = Request.receive(in);
                 System.out.println(request);
+                if (request.getRequestType().equals(RequestType.REQUEST_JOB)){
+
+                }
                 if (request.getRequestType().equals(RequestType.STOP)){
+                    shouldBreak = true;
+                }
+                if (shouldBreak){
                     break;
                 }
+                Response response = new Response();
+                response.setResponseType(ResponseType.ACK);
+                response.setData("ack");
+                response.send(out);
 
             }
             System.out.println("Client: " + socket.getInetAddress().getHostAddress() + " disconnected");

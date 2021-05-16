@@ -2,7 +2,7 @@ package app;
 
 
 import app.client.Bruteforce;
-import app.server.Job;
+import app.shared.Job;
 import app.server.JobScheduler;
 
 public class Main {

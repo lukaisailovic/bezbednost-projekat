@@ -9,11 +9,10 @@ import java.nio.charset.StandardCharsets;
 
 public class Response {
 
-    private final ResponseType responseType;
-    private String data;
+    private ResponseType responseType;
+    private String data = "";
 
-    public Response(ResponseType requestType) {
-        this.responseType = requestType;
+    public Response() {
     }
 
     public ResponseType getRequestType() {
@@ -28,6 +27,10 @@ public class Response {
         this.data = data;
     }
 
+    public void setResponseType(ResponseType responseType) {
+        this.responseType = responseType;
+    }
+
     public void send(PrintWriter out){
         String stringBuilder = URLEncoder.encode(this.responseType.toString(), StandardCharsets.UTF_8) +
                 "." +
@@ -40,7 +43,8 @@ public class Response {
         String[] messageParts = message.split("\\.");
         ResponseType responseType = ResponseType.valueOf(URLDecoder.decode(messageParts[0], StandardCharsets.UTF_8));
         String data = URLDecoder.decode(messageParts[1],StandardCharsets.UTF_8);
-        Response response = new Response(responseType);
+        Response response = new Response();
+        response.setResponseType(responseType);
         response.setData(data);
         return response;
     }

@@ -1,4 +1,4 @@
-package app.server;
+package app.shared;
 
 public class Job {
     private final int length;

@@ -9,11 +9,10 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 public class Request {
-    private final RequestType requestType;
-    private String data;
+    private RequestType requestType;
+    private String data = "";
 
-    public Request(RequestType requestType) {
-        this.requestType = requestType;
+    public Request(){
     }
 
     public RequestType getRequestType() {
@@ -28,6 +27,9 @@ public class Request {
         this.data = data;
     }
 
+    public void setRequestType(RequestType requestType) {
+        this.requestType = requestType;
+    }
 
     public void send(PrintWriter out){
         String stringBuilder = URLEncoder.encode(this.requestType.toString(), StandardCharsets.UTF_8) +
@@ -41,7 +43,8 @@ public class Request {
         String[] messageParts = message.split("\\.");
         RequestType requestType = RequestType.valueOf(URLDecoder.decode(messageParts[0], StandardCharsets.UTF_8));
         String data = URLDecoder.decode(messageParts[1],StandardCharsets.UTF_8);
-        Request request = new Request(requestType);
+        Request request = new Request();
+        request.setRequestType(requestType);
         request.setData(data);
         return request;
     }

@@ -1,5 +1,6 @@
 package app.server;
 
+import app.shared.Job;
 import app.shared.Parameters;
 
 import java.util.ArrayList;
