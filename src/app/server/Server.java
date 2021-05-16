@@ -14,9 +14,9 @@ public class Server {
 
             Socket socket = serverSocket.accept();
 
-            ServerThread server_thread = new ServerThread(socket, this);
+            ServerThread serverThread = new ServerThread(socket, this);
 
-            Thread thread = new Thread(server_thread);
+            Thread thread = new Thread(serverThread);
 
             thread.start();
         }
