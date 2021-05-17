@@ -10,6 +10,7 @@ import app.shared.response.ResponseType;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.Scanner;
 import java.util.concurrent.*;
 
 import java.util.concurrent.atomic.AtomicLong;
@@ -25,17 +26,22 @@ public class Client {
     private final AtomicLong lastStoredHashrate = new AtomicLong(0);
     private final ScheduledExecutorService benchmarkExecutor = Executors.newScheduledThreadPool(1);
     private long lastSent = System.currentTimeMillis();
+    private String host = SERVER_HOST;
 
 
-    public Client() throws Exception {
-        this.socket = new Socket(SERVER_HOST, SERVER_PORT);
+    public Client(String host) throws Exception {
+
+        if (host != null && host.length() > 0){
+            this.host = host;
+        }
+        this.socket = new Socket(host, SERVER_PORT);
     }
 
     public void start() throws IOException {
         BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         PrintWriter out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true);
 
-        System.out.println("Connected to server on port "+SERVER_PORT);
+        System.out.println("Connected to server on host "+this.host+" on port "+SERVER_PORT);
         Benchmark benchmark = new Benchmark(hashrate, lastStoredHashrate);
         benchmarkExecutor.scheduleAtFixedRate(benchmark,0,1,TimeUnit.SECONDS);
 
@@ -93,7 +99,9 @@ public class Client {
 
     public static void main(String[] args) {
         try {
-            Client client = new Client();
+            Scanner scanner = new Scanner(System.in);
+            System.out.println("Enter server host: (empty for localhost)");
+            Client client = new Client(scanner.nextLine());
             client.start();
         } catch (Exception e) {
             e.printStackTrace();
