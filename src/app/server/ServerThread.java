@@ -41,7 +41,7 @@ public class ServerThread implements Runnable {
 
                 if (server.getSolved().get()){
                     response.setResponseType(ResponseType.STOP);
-                    response.setData("hash found, value="+cleartext);
+                    response.setData("hash found");
                     response.send(out);
                     break;
                 }
