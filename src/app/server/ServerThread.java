@@ -48,11 +48,11 @@ public class ServerThread implements Runnable {
 
                 if (request.getRequestType().equals(RequestType.REQUEST_JOB)){
                     response.setResponseType(ResponseType.SEND_JOB);
-                    System.out.println("Sending job to client");
                     response.setData(server.getJobsQueue().take().serialize());
                 }
                 if (request.getRequestType().equals(RequestType.REPORT_HASHRATE)){
-                    this.checks.addAndGet(Integer.parseInt(request.getData()));
+                    String hashrate = request.getData();
+                    this.checks.addAndGet(Integer.parseInt(hashrate));
                 }
                 if (request.getRequestType().equals(RequestType.SEND_VALUE)){
                     String[] parts = request.getData().split(",");

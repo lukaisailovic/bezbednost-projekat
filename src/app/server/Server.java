@@ -16,7 +16,10 @@ public class Server {
     private final ServerSocket serverSocket;
     private final BlockingQueue<Job> jobsQueue = new LinkedBlockingQueue<>();
     private final AtomicLong checks = new AtomicLong(0);
+    private final AtomicLong lastStoredHashrate = new AtomicLong(0);
     private final ThreadPoolExecutor clients = (ThreadPoolExecutor) Executors.newCachedThreadPool();
+    private final ScheduledExecutorService benchmarkExecutor = Executors.newScheduledThreadPool(1);
+
     private final String target;
     private final AtomicBoolean solved = new AtomicBoolean(false);
 
@@ -51,6 +54,8 @@ public class Server {
     }
     public void start() throws IOException {
         System.out.println("Server waiting for connections on port "+PORT);
+        Benchmark benchmark = new Benchmark(checks, lastStoredHashrate);
+        benchmarkExecutor.scheduleAtFixedRate(benchmark,0,1,TimeUnit.SECONDS);
 
         while (true) {
             Socket socket = serverSocket.accept();
@@ -60,6 +65,7 @@ public class Server {
     }
     public void solveHash(String cleartext){
         this.clients.shutdownNow();
+        this.benchmarkExecutor.shutdownNow();
         System.out.println("Solution for hash "+this.target+" found");
         System.out.println("Cleartext value: "+cleartext);
     }
