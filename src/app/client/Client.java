@@ -1,23 +1,32 @@
 package app.client;
 
+import app.server.Benchmark;
 import app.shared.Job;
 import app.shared.request.Request;
 import app.shared.request.RequestType;
 import app.shared.response.Response;
 import app.shared.response.ResponseType;
-import core.SHA1;
+
 
 import java.io.*;
 import java.net.Socket;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
+
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class Client {
     private static final int SERVER_PORT = 2021;
     private static final String SERVER_HOST = "localhost";
+    private static final int MAX_WORKERS = 3;
     private final Socket socket;
     private final BlockingQueue<String> sendingQueue = new LinkedBlockingQueue<>();
+    private final ThreadPoolExecutor workers = (ThreadPoolExecutor) Executors.newFixedThreadPool(MAX_WORKERS);
+    private final AtomicLong hashrate = new AtomicLong(0);
+    private final AtomicLong lastStoredHashrate = new AtomicLong(0);
+    private final ScheduledExecutorService benchmarkExecutor = Executors.newScheduledThreadPool(1);
+    private long lastSent = System.currentTimeMillis();
+
 
     public Client() throws Exception {
         this.socket = new Socket(SERVER_HOST, SERVER_PORT);
@@ -28,35 +37,44 @@ public class Client {
         PrintWriter out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true);
 
         System.out.println("Connected to server on port "+SERVER_PORT);
+        Benchmark benchmark = new Benchmark(hashrate, lastStoredHashrate);
+        benchmarkExecutor.scheduleAtFixedRate(benchmark,0,1,TimeUnit.SECONDS);
 
 
-        int i = 0;
         while (true) {
             boolean shouldBreak = false;
             Request request = new Request();
 
             try {
-                String generatedString = sendingQueue.poll(50, TimeUnit.MILLISECONDS);
+                // if there is a value to be sent, send it;
+                String preparedValue = sendingQueue.poll(200, TimeUnit.MILLISECONDS);
                 request.setRequestType(RequestType.SEND_VALUE);
-                if (generatedString == null){
+                if (preparedValue == null){
                     throw new Exception("Invalid string");
                 }
-                String hash = SHA1.hash(generatedString);
-                System.out.println("ATTEMPT: "+hash);
-                request.setData(hash+","+generatedString);
+                request.setData(preparedValue);
             } catch (Exception e) {
-                request.setRequestType(RequestType.REQUEST_JOB);
-                request.setData("req");
+                // check if should request for job or report hashrate
+                long currentTime = System.currentTimeMillis();
+                if (currentTime - lastSent > 1000){
+                    request.setRequestType(RequestType.REPORT_HASHRATE);
+                    request.setData(String.valueOf(this.lastStoredHashrate.get()));
+                    this.lastSent = currentTime;
+                } else {
+                    if (this.workers.getActiveCount() < MAX_WORKERS){
+                        request.setRequestType(RequestType.REQUEST_JOB);
+                        request.setData("req");
+                    }
+                }
+
             }
             request.send(out);
             Response response = Response.receive(in);
-            System.out.println(response);
+            //System.out.println(response);
             if (response.getResponseType().equals(ResponseType.SEND_JOB)){
                 Job job = Job.deserialize(response.getData());
-                System.out.println(job);
-                JobConsumer jobConsumer = new JobConsumer(sendingQueue,job);
-                Thread thread = new Thread(jobConsumer);
-                thread.start();
+                JobConsumer jobConsumer = new JobConsumer(sendingQueue,job, hashrate);
+                workers.submit(jobConsumer);
             }
             if (response.getResponseType().equals(ResponseType.STOP)){
                 shouldBreak = true;
@@ -66,11 +84,11 @@ public class Client {
             if (shouldBreak){
                 break;
             }
-            i++;
-
         }
 
         socket.close();
+        this.workers.shutdownNow();
+        this.benchmarkExecutor.shutdownNow();
         System.out.println("Disconnecting");
     }
 

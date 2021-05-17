@@ -1,5 +1,6 @@
 package app.server;
 
+import app.shared.Parameters;
 import app.shared.request.Request;
 import app.shared.request.RequestType;
 import app.shared.response.Response;
@@ -16,7 +17,6 @@ public class ServerThread implements Runnable {
     private final Server server;
     private final AtomicLong checks;
     private final String target;
-    private String solution = "";
 
     public ServerThread(Socket socket, Server server, AtomicLong checks) {
         this.socket = socket;
@@ -48,10 +48,13 @@ public class ServerThread implements Runnable {
 
                 if (request.getRequestType().equals(RequestType.REQUEST_JOB)){
                     response.setResponseType(ResponseType.SEND_JOB);
+                    System.out.println("Sending job to client");
                     response.setData(server.getJobsQueue().take().serialize());
                 }
+                if (request.getRequestType().equals(RequestType.REPORT_HASHRATE)){
+                    this.checks.addAndGet(Integer.parseInt(request.getData()));
+                }
                 if (request.getRequestType().equals(RequestType.SEND_VALUE)){
-                    this.checks.incrementAndGet();
                     String[] parts = request.getData().split(",");
                     if (target.equals(parts[0])){
                         response.setResponseType(ResponseType.STOP);
@@ -63,7 +66,7 @@ public class ServerThread implements Runnable {
                 }
                 if (solved){
                     response.setResponseType(ResponseType.STOP);
-                    response.setData("hash found, value="+cleartext);
+                    response.setData("hash found");
                     shouldBreak = true;
                 }
                 response.send(out);

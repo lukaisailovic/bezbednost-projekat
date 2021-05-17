@@ -2,26 +2,27 @@ package app.client;
 
 
 import app.shared.Parameters;
+import core.SHA1;
 
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class Bruteforce {
 
-    private String target = null;
-    private BlockingQueue<String> queue = null;
+    private final String target;
+    private BlockingQueue<String> queue;
     private final char[] charset;
     private final int startPos;
     private int checked = 0;
+    private final AtomicLong hashrate;
 
-    public Bruteforce(String hash, int startPos)  {
-        this.target = hash;
-        this.charset = Parameters.CHARSET.toCharArray();
-        this.startPos = startPos;
-    }
-    public Bruteforce(BlockingQueue<String> queue, int startPos){
+
+    public Bruteforce(BlockingQueue<String> queue, int startPos, String target, AtomicLong hashrate){
         this.queue = queue;
         this.startPos = startPos;
         this.charset = Parameters.CHARSET.toCharArray();
+        this.target = target;
+        this.hashrate = hashrate;
     }
 
     public int getCharsetLength(){
@@ -49,14 +50,10 @@ public class Bruteforce {
     }
 
     private void handleGeneratedString(String str){
-        if (this.target != null){
-            System.out.println("----------");
-            System.out.println("TARGET: " + target);
-            System.out.println("CURRENT: "+ str);
-            System.out.println("----------");
-        }
-        if (this.queue != null){
-            this.queue.add(str);
+        String hash = SHA1.hash(str);
+        this.hashrate.incrementAndGet();
+        if (hash.equals(target)){
+            this.queue.add(hash+","+str);
         }
     }
 

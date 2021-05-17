@@ -6,10 +6,12 @@ public class Job {
 
     private final int length;
     private final int startPos;
+    private final String hash;
 
-    public Job(int length, int startPos) {
+    public Job(int length, int startPos, String hash) {
         this.length = length;
         this.startPos = startPos;
+        this.hash = hash;
     }
 
     public int getLength() {
@@ -20,19 +22,24 @@ public class Job {
         return startPos;
     }
 
+    public String getHash() {
+        return hash;
+    }
+
     @Override
     public String toString() {
         return "Job{" +
                 "length=" + length +
                 ", startPos=" + startPos +
+                ", hash='" + hash + '\'' +
                 '}';
     }
 
     public String serialize(){
-        return this.length+DELIMITER+this.startPos;
+        return this.length+DELIMITER+this.startPos+DELIMITER+hash;
     }
     public static Job deserialize(String data){
         String[] parts = data.split(DELIMITER);
-        return new Job(Integer.parseInt(parts[0]),Integer.parseInt(parts[1]));
+        return new Job(Integer.parseInt(parts[0]),Integer.parseInt(parts[1]), parts[2]);
     }
 }

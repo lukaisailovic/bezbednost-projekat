@@ -32,9 +32,13 @@ public class Request {
     }
 
     public void send(PrintWriter out){
+        String safeData = "req";
+        if (this.data.length() > 0){
+            safeData = data;
+        }
         String stringBuilder = URLEncoder.encode(this.requestType.toString(), StandardCharsets.UTF_8) +
                 "." +
-                URLEncoder.encode(this.data, StandardCharsets.UTF_8);
+                URLEncoder.encode(safeData, StandardCharsets.UTF_8);
         out.println(stringBuilder);
     }
 
